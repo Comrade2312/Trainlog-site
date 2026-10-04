@@ -1,0 +1,2508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Программа тренировок и питания</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg2: #0d0d0d;
+    --card: #141414;
+    --card2: #1a1a1a;
+    --border: #262626;
+    --text: #f5f5f5;
+    --muted: #a0a0a0;
+    --accent: #22c55e;
+    --accent2: #16a34a;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+  }
+
+  [data-theme="light"] {
+    --bg: #f7f7f8;
+    --bg2: #ffffff;
+    --card: #ffffff;
+    --card2: #fafafa;
+    --border: #e2e2e6;
+    --text: #111111;
+    --muted: #666666;
+    --accent: #16a34a;
+    --accent2: #15803d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    line-height: 1.6;
+    transition: background 0.2s, color 0.2s;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 0;
+  }
+
+  .top-bar {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
+  .logo span { color: var(--accent); }
+
+  .top-right { display: flex; align-items: center; gap: 8px; }
+
+  .theme-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .theme-btn:hover { border-color: var(--accent); }
+
+  .account { position: relative; }
+
+  .account-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px 6px 6px;
+    border-radius: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+
+  .account-btn:hover { border-color: var(--accent); }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .account-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    min-width: 240px;
+    padding: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    display: none;
+    z-index: 200;
+  }
+
+  .account-menu.open { display: block; }
+
+  .account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .account-menu-item:hover { background: var(--card2); }
+
+  .account-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 4px;
+  }
+
+  .account-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+
+  .account-header .name { font-weight: 600; }
+  .account-header .role { font-size: 12px; color: var(--muted); }
+
+  .tabs {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  .section { display: none; animation: fade 0.2s; }
+  .section.active { display: block; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; font-weight: 700; margin: 32px 0 12px; letter-spacing: -0.01em; }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; }
+
+  .subtitle { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card h3 { margin-top: 0; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 6px;
+  }
+
+  .badge.heavy { background: rgba(239,68,68,0.15); color: var(--danger); }
+  .badge.medium { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .badge.light { background: rgba(34,197,94,0.15); color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--bg2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card);
+  }
+
+  .table-wrap table { margin: 0; }
+
+  ul, ol { padding-left: 20px; margin: 8px 0; }
+  li { margin: 6px 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+
+  .kbd {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: ui-monospace, monospace;
+  }
+
+  .note {
+    background: rgba(34,197,94,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+
+  .note.warn { background: rgba(245,158,11,0.08); border-left-color: var(--warn); }
+  .note.danger { background: rgba(239,68,68,0.08); border-left-color: var(--danger); }
+
+  .recipe { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .recipe .stats { text-align: right; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .recipe .stats b { color: var(--accent); display: block; font-size: 15px; }
+
+  /* ПИТАНИЕ */
+  .meal-plan { display: flex; flex-direction: column; gap: 20px; }
+
+  .meal-day {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .meal-day-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .meal-day-title .day-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .meal-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .meal-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .meal-row:first-child { padding-top: 0; }
+
+  .meal-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 92px;
+    flex-shrink: 0;
+    padding-top: 3px;
+  }
+
+  .meal-text { flex: 1; color: var(--text); }
+  .meal-text b { color: var(--accent); }
+
+  .shop-list { list-style: none; padding: 0; margin: 0; }
+  .shop-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .shop-list li:last-child { border-bottom: none; }
+  .shop-list li::before {
+    content: "✓";
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .sauce-list { list-style: none; padding: 0; margin: 0; }
+  .sauce-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .sauce-list li:last-child { border-bottom: none; }
+  .sauce-list li b { color: var(--accent); }
+
+  /* РАСПИСАНИЕ */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all 0.15s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .day-card:hover { border-color: var(--accent); }
+
+  .day-card .day-name {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .day-card .day-type {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-radius: 8px;
+    display: inline-block;
+    min-width: 100%;
+  }
+
+  .type-rest { background: var(--card2); color: var(--muted); }
+  .type-a { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .type-b { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .type-c { background: rgba(34,197,94,0.15); color: var(--accent); }
+
+  .day-card.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .day-card.today .day-name::after { content: " •"; color: var(--accent); }
+
+  .day-card.selected {
+    background: rgba(34,197,94,0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent), 0 6px 20px rgba(34,197,94,0.18);
+  }
+
+  .schedule-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 4px; }
+
+  .day-detail-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .day-detail-head h3 { margin: 0; font-size: 18px; }
+
+  .day-detail-sub { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+
+  .ex-list { list-style: none; padding: 0; margin: 0; }
+
+  .ex-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .ex-list li:last-child { border-bottom: none; }
+  .ex-list .ex-name { flex: 1; }
+  .ex-list .ex-sets {
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .change-day-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .change-day-btn:hover { border-color: var(--accent); background: rgba(34,197,94,0.08); }
+
+  .rest-list { list-style: none; padding: 0; margin: 0; }
+  .rest-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .rest-list li::before {
+    content: "•";
+    color: var(--muted);
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  /* МОДАЛКА */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 { margin: 0 0 16px; font-size: 17px; }
+
+  .modal-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: 6px;
+    font-family: inherit;
+    background: var(--card2);
+    color: var(--text);
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .modal-option:hover { border-color: var(--accent); }
+
+  .modal-close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .modal.fancy-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #22c55e var(--bg2);
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar { width: 14px; }
+
+  .modal.fancy-scroll::-webkit-scrollbar-track {
+    background: var(--bg2);
+    border-radius: 999px;
+    margin: 14px 0;
+    border: 1px solid var(--border);
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+    border-radius: 999px;
+    border: 3px solid var(--bg2);
+    min-height: 44px;
+    box-shadow:
+      0 0 12px rgba(34,197,94,0.55),
+      inset 0 0 4px rgba(255,255,255,0.35);
+    transition: box-shadow 0.2s, background 0.2s;
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+    box-shadow:
+      0 0 18px rgba(34,197,94,0.9),
+      inset 0 0 6px rgba(255,255,255,0.5);
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-button:single-button {
+    background-color: var(--card2);
+    display: block;
+    height: 22px;
+    width: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-button:single-button:hover {
+    background-color: var(--card);
+    border-color: var(--accent);
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='18 15 12 9 6 15'/></svg>");
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  }
+
+  .modal.fancy-scroll::-webkit-scrollbar-corner { background: transparent; }
+
+  #profileDataModal .modal {
+    max-width: 640px;
+    width: 100%;
+    padding: 32px 36px;
+    max-height: 94vh;
+    border-radius: 20px;
+  }
+
+  #profileDataModal .modal h3 { font-size: 24px; margin-bottom: 8px; }
+
+  #calcModal .modal {
+    max-width: 860px;
+    width: 100%;
+    padding: 36px 40px;
+    max-height: 94vh;
+    border-radius: 20px;
+  }
+
+  #calcModal .modal h3 { font-size: 24px; margin-bottom: 8px; }
+  #calcModal .modal > p { font-size: 15px; }
+
+  .profile-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  #profileDataModal .profile-form {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 24px;
+    margin: 24px 0 8px;
+  }
+
+  #profileDataModal .profile-form .full { grid-column: 1 / -1; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+  .form-group input,
+  .form-group select {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus { border-color: var(--accent); }
+
+  #profileDataModal .form-group label { font-size: 14px; font-weight: 600; }
+  #profileDataModal .form-group input { padding: 14px 16px; font-size: 16px; border-radius: 10px; }
+
+  #calcModal .btn,
+  #profileDataModal .btn {
+    padding: 14px 24px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  #calcModal .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+
+  #calcModal .stat-box { padding: 18px; }
+  #calcModal .stat-box .value { font-size: 26px; }
+
+  #calcModal .modal-close,
+  #profileDataModal .modal-close {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.9; }
+
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn.secondary:hover { border-color: var(--accent); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .stat-box {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .stat-box .label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .stat-box .value {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .stat-box .value.accent { color: var(--accent); }
+  .stat-box .value.blue { color: var(--blue); }
+  .stat-box .value.purple { color: var(--purple); }
+  .stat-box .value.warn { color: var(--warn); }
+  .stat-box .value.danger { color: var(--danger); }
+
+  .stat-box .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .bmi-scale { margin-top: 28px; position: relative; padding-top: 22px; }
+
+  .bmi-bar {
+    display: flex;
+    height: 14px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    position: relative;
+  }
+
+  .bmi-segment { flex: 1; }
+  .bmi-under { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
+  .bmi-normal { background: linear-gradient(180deg, #4ade80, #22c55e); }
+  .bmi-over { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+  .bmi-obese { background: linear-gradient(180deg, #f87171, #ef4444); }
+
+  .bmi-marker {
+    position: absolute;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: 3px solid var(--card);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    transition: left 0.4s cubic-bezier(.4,1.4,.5,1);
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 6px 16px rgba(34,197,94,0.55),
+      0 0 22px rgba(34,197,94,0.35);
+    z-index: 2;
+  }
+
+  .bmi-marker::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 14px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    border-radius: 2px;
+  }
+
+  .bmi-marker::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    width: 6px;
+    height: 6px;
+    background: rgba(255,255,255,0.65);
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+
+  .bmi-value-bubble {
+    position: absolute;
+    top: -22px;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: left 0.4s cubic-bezier(.4,1.4,.5,1);
+    box-shadow: 0 4px 14px rgba(34,197,94,0.5);
+    letter-spacing: 0.02em;
+    z-index: 3;
+  }
+
+  .bmi-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ПРОДУКТЫ */
+  .shop-category { margin-bottom: 16px; }
+
+  .shop-category-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .shop-category-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .shop-category-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .shop-category-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .shop-item {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .shop-item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .shop-item-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .shop-item-price {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .shop-total {
+    background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04));
+    border: 1px solid rgba(34,197,94,0.35);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .shop-total-label {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .shop-total-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .shop-total-sub {
+    font-size: 12px;
+    color: var(--muted);
+    width: 100%;
+  }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 22px; }
+    h2 { font-size: 17px; }
+    .card { padding: 16px; }
+    .tab { padding: 10px 14px; font-size: 14px; }
+    .recipe { flex-direction: column; }
+    .recipe .stats { text-align: left; }
+    table { font-size: 13px; }
+    td, th { padding: 8px; }
+    .week-grid { grid-template-columns: repeat(2, 1fr); }
+    .account-btn .account-name { display: none; }
+    .logo { font-size: 15px; }
+    .stat-box .value { font-size: 20px; }
+
+    .meal-row { flex-direction: column; gap: 4px; }
+    .meal-label { min-width: auto; padding-top: 0; }
+    .meal-day { padding: 16px 14px; }
+
+    #calcModal .modal,
+    #profileDataModal .modal {
+      padding: 24px 20px;
+      max-width: 100%;
+    }
+    #calcModal .modal h3,
+    #profileDataModal .modal h3 { font-size: 20px; }
+
+    #profileDataModal .profile-form {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    #profileDataModal .form-group input {
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+
+    .shop-grid { grid-template-columns: 1fr; }
+    .shop-total { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top-bar">
+    <div class="logo">💪 <span>Train</span>Log</div>
+    <div class="top-right">
+      <button class="theme-btn" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span>
+      </button>
+      <div class="account">
+        <button class="account-btn" onclick="toggleAccount(event)">
+          <div class="avatar" id="avatarInitials">Д</div>
+          <span class="account-name" id="accountName">Друг</span>
+        </button>
+        <div class="account-menu" id="accountMenu">
+          <div class="account-header">
+            <div class="name" id="menuName">Друг</div>
+            <div class="role" id="menuRole">Профиль не заполнен</div>
+          </div>
+          <button class="account-menu-item" onclick="openProfileData()">
+            👤 Профиль
+          </button>
+          <button class="account-menu-item" onclick="openCalc()">
+            📊 Расчёт
+          </button>
+          <div class="account-menu-divider"></div>
+          <button class="account-menu-item" onclick="resetAll()">
+            🗑️ Сбросить всё
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('train', this)">Тренировки</button>
+    <button class="tab" onclick="showTab('schedule', this)">Расписание</button>
+    <button class="tab" onclick="showTab('food', this)">Питание</button>
+    <button class="tab" onclick="showTab('shake', this)">Коктейли</button>
+    <button class="tab" onclick="showTab('progress', this)">Прогресс</button>
+    <button class="tab" onclick="showTab('shop', this)">Продукты</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ТРЕНИРОВКИ -->
+  <section id="train" class="section active">
+    <h1>Программа тренировок</h1>
+    <p class="subtitle">Верх дома 2 раза в неделю + ноги в зале. Медленный качественный набор массы.</p>
+
+    <div class="note">
+      <b>Отдых между подходами:</b><br>
+      <span class="badge heavy">Тяжёлое</span> — 2–3 мин &nbsp;
+      <span class="badge medium">Среднее</span> — 1,5–2 мин &nbsp;
+      <span class="badge light">Лёгкое</span> — 60–90 сек
+    </div>
+
+    <h2>День A — Верх (грудь + ширина спины)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Упражнение</th><th>Подходы</th><th>Тип</th><th>Отдых</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Подтягивания (с рюкзаком, если легко)</td><td>4×6–10</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>2</td><td>Брусья (наклон вперёд, грудь)</td><td>4×8–12</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>3</td><td>Отжимания с ногами на возвышении</td><td>3×12–20</td><td><span class="badge medium">Среднее</span></td><td>1,5–2 мин</td></tr>
+          <tr><td>4</td><td>Тяга штанги в наклоне</td><td>4×8–10</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>5</td><td>Тяга гантели одной рукой в наклоне</td><td>3×10–12 на руку</td><td><span class="badge medium">Среднее</span></td><td>1,5 мин</td></tr>
+          <tr><td>6</td><td>Подъём ног в висе</td><td>3×10–15</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>7</td><td>Сгибания рук со штангой / гантелями</td><td>2×10–12</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>День B — Верх (толщина спины + плечи + руки + хват)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Упражнение</th><th>Подходы</th><th>Тип</th><th>Отдых</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Подтягивания обратным хватом</td><td>4×6–10</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>2</td><td>Брусья (корпус вертикально, трицепс)</td><td>4×8–12</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>3</td><td>Жим гантелей стоя / сидя</td><td>4×8–12</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>4</td><td>Тяга штанги обратным хватом</td><td>3×8–12</td><td><span class="badge medium">Среднее</span></td><td>2 мин</td></tr>
+          <tr><td>5</td><td>Махи гантелями в стороны</td><td>3×12–20</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>6</td><td>Разведения в наклоне (задняя дельта)</td><td>3×12–15</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>7</td><td>Бицепс + молотки</td><td>2×10–12 каждое</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>8a</td><td>Эспандер (сжатие + негативы + удержание)</td><td>2–3 подхода</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>8b</td><td>Сгибания запястий со штангой</td><td>2×15–20</td><td><span class="badge light">Лёгкое</span></td><td>60 сек</td></tr>
+          <tr><td>8c</td><td>Обратные сгибания</td><td>2×12–15</td><td><span class="badge light">Лёгкое</span></td><td>60 сек</td></tr>
+          <tr><td>8d</td><td>Вис на турнике</td><td>2×макс</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>День C — Ноги (в зале)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Упражнение</th><th>Подходы</th><th>Тип</th><th>Отдых</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Присед со штангой</td><td>4×6–10</td><td><span class="badge heavy">Тяжёлое</span></td><td>3 мин</td></tr>
+          <tr><td>2</td><td>Жим ногами / выпады</td><td>3×10–12</td><td><span class="badge heavy">Тяжёлое</span></td><td>2–3 мин</td></tr>
+          <tr><td>3</td><td>Румынская тяга / сгибания ног</td><td>3×10–12</td><td><span class="badge medium">Среднее</span></td><td>2 мин</td></tr>
+          <tr><td>4</td><td>Разгибания ног</td><td>3×12–15</td><td><span class="badge light">Лёгкое</span></td><td>60–90 сек</td></tr>
+          <tr><td>5</td><td>Икры стоя / сидя</td><td>4×12–20</td><td><span class="badge light">Лёгкое</span></td><td>60 сек</td></tr>
+          <tr><td>6</td><td>Пресс</td><td>3×10–15</td><td><span class="badge light">Лёгкое</span></td><td>60 сек</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Как прогрессировать</h2>
+    <div class="card">
+      <ul>
+        <li>Работать <b>не до отказа</b>, оставлять 1–2 повтора в запасе.</li>
+        <li>Сначала растут <b>повторы</b>, потом <b>вес</b>.</li>
+        <li>Как дошёл до верхней границы повторов во всех подходах → добавляй вес.</li>
+        <li>Рюкзак: <span class="kbd">+2,5 кг</span> · Гантели: <span class="kbd">+1–2 кг</span> · Штанга: <span class="kbd">+2,5–5 кг</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- РАСПИСАНИЕ -->
+  <section id="schedule" class="section">
+    <h1>Расписание недели</h1>
+    <p class="subtitle">Кликни на день — ниже появится, что делать в этот день. Сохраняется автоматически.</p>
+
+    <div class="card">
+      <p style="margin-bottom:12px;">Текущая неделя:</p>
+      <div class="week-grid" id="weekGrid"></div>
+
+      <div class="schedule-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Верх A</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Верх B</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Ноги</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--card2)"></div> Отдых</div>
+      </div>
+    </div>
+
+    <h2 id="dayDetailTitle">Что делать в этот день</h2>
+    <div id="dayDetail"></div>
+  </section>
+
+  <!-- ПИТАНИЕ -->
+  <section id="food" class="section">
+    <h1>Питание</h1>
+    <p class="subtitle">Медленный качественный набор: ~3200–3300 ккал, 180–190 г белка. Профицит +200–300 ккал.</p>
+
+    <div class="note">
+      5–6 приёмов понемногу. Белок в каждом приёме. Соусы и добавки — чтобы не пресно. Коктейли — утром и/или перед сном.
+    </div>
+
+    <h2>Утро (дома, 5–10 мин)</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Вариант A — есть аппетит</h3>
+        <ul>
+          <li>3 яйца (омлет с сыром / варёные)</li>
+          <li>2 куска хлеба с маслом/сыром</li>
+          <li>Банан</li>
+          <li>Молоко / какао</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Вариант B — не лезет</h3>
+        <ul>
+          <li>Коктейль: молоко + банан + 2 ложки творога + мёд (+ мороженое)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Вариант C — чередовать</h3>
+        <ul>
+          <li>Омлет с курицей + хлеб</li>
+          <li>Яичница + бутерброд с сыром</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>С собой в сумку (на весь день)</h2>
+    <div class="card">
+      <ul class="shop-list">
+        <li>3 варёных яйца</li>
+        <li>2 бутерброда с курицей (или с сыром)</li>
+        <li>Банан</li>
+        <li>Творог 200 г + мёд / варенье / какао / сгущёнка</li>
+        <li>Горсть орехов или печенье</li>
+      </ul>
+    </div>
+
+    <h2>За 1,5 часа до тренировки</h2>
+    <div class="card">
+      <p>Банан + бутерброд · или творог с бананом · или коктейль</p>
+    </div>
+
+    <h2>После тренировки (дома)</h2>
+    <div class="card">
+      <p style="margin-bottom:14px;"><b>База:</b> гарнир 300 г готового + курица 200 г + 1–2 яйца + овощи.</p>
+      <h3>Соусы на выбор (5 минут):</h3>
+      <ul class="sauce-list">
+        <li><b>Сливочно-чесночный</b> — сливки 10–20% + чеснок + сыр + специи</li>
+        <li><b>Сливочно-грибной</b> — сливки + грибы + лук</li>
+        <li><b>Томатный</b> — томатная паста/помидоры + чеснок + травы</li>
+        <li><b>Соево-медовый</b> — соевый соус + мёд + чеснок</li>
+        <li><b>Карри</b> — сливки/молоко + карри + лук</li>
+        <li><b>Сырный</b> — молоко/сливки + тёртый сыр + чуть муки</li>
+      </ul>
+    </div>
+
+    <h2>Перед сном</h2>
+    <div class="card">
+      <div class="meal-row" style="border-bottom:1px dashed var(--border);">
+        <div class="meal-label">Вариант A</div>
+        <div class="meal-text">Творог 200 г + мёд / варенье</div>
+      </div>
+      <div class="meal-row" style="padding-bottom:0;">
+        <div class="meal-label">Вариант B</div>
+        <div class="meal-text">Коктейль (см. вкладку «Коктейли»)</div>
+      </div>
+    </div>
+
+    <h2>Пример 5 дней из одних продуктов</h2>
+    <div class="meal-plan">
+
+      <div class="meal-day">
+        <div class="meal-day-title"><span class="day-num">1</span> День 1</div>
+        <div class="meal-row">
+          <div class="meal-label">Утро</div>
+          <div class="meal-text">Омлет с сыром + хлеб + банан + молоко</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">С собой</div>
+          <div class="meal-text">3 яйца, бутерброды с курицей, творог с мёдом, банан</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">До трен.</div>
+          <div class="meal-text">Банан + бутерброд</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">После</div>
+          <div class="meal-text">Рис + курица в <b>сливочно-чесночном соусе</b> + яйцо</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">Перед сном</div>
+          <div class="meal-text">Творог с мёдом</div>
+        </div>
+      </div>
+
+      <div class="meal-day">
+        <div class="meal-day-title"><span class="day-num">2</span> День 2</div>
+        <div class="meal-row">
+          <div class="meal-label">Утро</div>
+          <div class="meal-text">Коктейль (молоко + банан + творог + мёд) + 2 яйца</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">С собой</div>
+          <div class="meal-text">2 яйца, бутерброд с сыром, творог с вареньем, банан, орехи</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">До трен.</div>
+          <div class="meal-text">Творог с бананом</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">После</div>
+          <div class="meal-text">Гречка + курица в <b>томатном соусе</b> + яйцо + овощи</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">Перед сном</div>
+          <div class="meal-text">Коктейль с какао</div>
+        </div>
+      </div>
+
+      <div class="meal-day">
+        <div class="meal-day-title"><span class="day-num">3</span> День 3</div>
+        <div class="meal-row">
+          <div class="meal-label">Утро</div>
+          <div class="meal-text">Яичница с курицей + хлеб + банан</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">С собой</div>
+          <div class="meal-text">3 яйца, бутерброды с курицей, творог с какао, банан</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">До трен.</div>
+          <div class="meal-text">Банан + хлеб с маслом</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">После</div>
+          <div class="meal-text">Макароны + курица в <b>сырном соусе</b> + яйцо</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">Перед сном</div>
+          <div class="meal-text">Творог со сгущёнкой</div>
+        </div>
+      </div>
+
+      <div class="meal-day">
+        <div class="meal-day-title"><span class="day-num">4</span> День 4</div>
+        <div class="meal-row">
+          <div class="meal-label">Утро</div>
+          <div class="meal-text">Коктейль (молоко + банан + мороженое + творог) + 2 яйца</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">С собой</div>
+          <div class="meal-text">2 яйца, бутерброд с сыром, творог с мёдом, банан, печенье</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">До трен.</div>
+          <div class="meal-text">Банан + бутерброд</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">После</div>
+          <div class="meal-text">Картошка + курица в <b>соево-медовом соусе</b> + яйцо + салат</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">Перед сном</div>
+          <div class="meal-text">Творог с вареньем</div>
+        </div>
+      </div>
+
+      <div class="meal-day">
+        <div class="meal-day-title"><span class="day-num">5</span> День 5</div>
+        <div class="meal-row">
+          <div class="meal-label">Утро</div>
+          <div class="meal-text">Омлет + сыр + хлеб с маслом + молоко</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">С собой</div>
+          <div class="meal-text">3 яйца, бутерброды с курицей, творог с бананом, банан</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">До трен.</div>
+          <div class="meal-text">Творог + банан</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">После</div>
+          <div class="meal-text">Рис + курица в <b>карри со сливками</b> + яйцо + овощи</div>
+        </div>
+        <div class="meal-row">
+          <div class="meal-label">Перед сном</div>
+          <div class="meal-text">Коктейль с арахисовой пастой</div>
+        </div>
+      </div>
+
+    </div>
+
+    <h2>Про клетчатку и пищеварение</h2>
+    <div class="card">
+      <p style="margin-bottom:12px;">Нужно <b>300–500 г овощей в день</b> + 2–3 порции фруктов + <b>2,5–3 л воды</b>.</p>
+      <div class="meal-row">
+        <div class="meal-label">Овощи</div>
+        <div class="meal-text">Помидоры, огурцы, капуста, морковь, свёкла, кабачок, замороженные смеси</div>
+      </div>
+      <div class="meal-row">
+        <div class="meal-label">Фрукты</div>
+        <div class="meal-text">Яблоки (1–2 в день), бананы, апельсины, груши</div>
+      </div>
+      <div class="meal-row">
+        <div class="meal-label">Крупы</div>
+        <div class="meal-text">Чередовать рис / гречка / макароны</div>
+      </div>
+      <div class="meal-row">
+        <div class="meal-label">Добавки</div>
+        <div class="meal-text">Отруби 1–2 ложки в творог/коктейль, семена льна</div>
+      </div>
+      <div class="meal-row" style="padding-bottom:0;">
+        <div class="meal-label">Кисломолочка</div>
+        <div class="meal-text">Кефир, ряженка, йогурт</div>
+      </div>
+      <div class="note warn" style="margin-top:16px;margin-bottom:0;">Без воды клетчатка не работает — только хуже.</div>
+    </div>
+  </section>
+
+  <!-- КОКТЕЙЛИ -->
+  <section id="shake" class="section">
+    <h1>Коктейли</h1>
+    <p class="subtitle">Под блендер 600 мл. Целимся в 500–550 мл готового.</p>
+
+    <div class="note">
+      <b>Порядок:</b> сначала молоко, потом банан, творог, мороженое, добавки. Взбивать 30–60 сек.
+    </div>
+
+    <div class="card">
+      <h3>Базовая формула</h3>
+      <ul>
+        <li>Молоко — 300–350 мл</li>
+        <li>Банан — 1 средний (~120 г)</li>
+        <li>Творог 5% — 2 ст. ложки с горкой (~50 г)</li>
+        <li>Мороженое — 1–2 шарика (~50–80 г)</li>
+        <li>Добавка для вкуса — мёд / какао / арахисовая паста / варенье / сгущёнка</li>
+        <li>По желанию: 1–2 ст. ложки овсяных хлопьев</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>1. Классический</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог 5% — 50 г</li>
+            <li>Мороженое — 50–80 г</li>
+            <li>Мёд — 1 ст. ложка</li>
+          </ul>
+        </div>
+        <div class="stats">~550 мл<b>550–600 ккал</b>~25 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>2. Шоколадный</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Какао — 1 ст. ложка</li>
+          </ul>
+        </div>
+        <div class="stats">~530 мл<b>520–570 ккал</b>~24 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>3. Арахисовый</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Арахисовая паста — 1 ст. ложка</li>
+          </ul>
+        </div>
+        <div class="stats">~530 мл<b>600–650 ккал</b>~26 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>4. Клубничный</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Замороженная клубника — 50–70 г</li>
+          </ul>
+        </div>
+        <div class="stats">~550 мл<b>520–570 ккал</b>~24 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>5. С сгущёнкой</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Сгущёнка — 1 ст. ложка</li>
+          </ul>
+        </div>
+        <div class="stats">~530 мл<b>600–650 ккал</b>~24 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>6. С вареньем</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Варенье — 1–2 ст. ложки</li>
+          </ul>
+        </div>
+        <div class="stats">~550 мл<b>550–600 ккал</b>~24 г белка</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="recipe">
+        <div>
+          <h3>7. Овсяный (для клетчатки)</h3>
+          <ul>
+            <li>Молоко — 300 мл</li>
+            <li>Банан — 1 шт</li>
+            <li>Творог — 50 г</li>
+            <li>Мороженое — 50 г</li>
+            <li>Овсяные хлопья — 1–2 ст. ложки</li>
+            <li>Мёд — 1 ч. ложка</li>
+          </ul>
+        </div>
+        <div class="stats">~550 мл<b>580–630 ккал</b>~26 г белка</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ПРОГРЕСС -->
+  <section id="progress" class="section">
+    <h1>Контроль прогресса</h1>
+    <p class="subtitle">Цель: 100 кг при 12–13% жира. Реалистичный срок: 10–15 месяцев.</p>
+
+    <div class="note">
+      <b>Профицит +200–300 ккал.</b> Вес +0,15–0,25 кг/нед. Быстрее — жир. Медленнее — мышцы.
+    </div>
+
+    <h2>Как отслеживать</h2>
+    <div class="grid">
+      <div class="card"><h3>Взвешивание</h3><p>Раз в неделю, утром натощак, после туалета, до еды.</p></div>
+      <div class="card"><h3>Талия</h3><p>Раз в 2 недели. Рост талии быстрее силовых = сигнал урезать калории.</p></div>
+      <div class="card"><h3>Фото</h3><p>Раз в 2 недели. Один свет, без футболки, спереди/сбоку.</p></div>
+      <div class="card"><h3>Дневник</h3><p>Каждая тренировка: упражнение, вес, повторы.</p></div>
+    </div>
+
+    <h2>Правила корректировки</h2>
+    <div class="card">
+      <ul>
+        <li>Вес не растёт 2 недели → <b>+200 ккал</b></li>
+        <li>Вес +0,3 кг/нед и больше → <b>−200 ккал</b></li>
+        <li>Силовые растут, вес стоит → идёт рекомпозиция, всё ок</li>
+        <li>Вес растёт, силовые стоят → это жир, урезать еду</li>
+      </ul>
+    </div>
+
+    <h2>Почему «быстро» — это плохо</h2>
+    <div class="card">
+      <p>Сейчас: 89 кг, ~13% жира → ~77 кг сухой массы, ~12 кг жира.</p>
+      <p style="margin-top:8px;"><b>Быстрый набор до 100 кг при 18%:</b> +4,6 кг мышц и +6,4 кг жира. После сушки до 13% → 94 кг. <b>Не 100.</b></p>
+      <p style="margin-top:8px;"><b>Медленный до 100 кг при 13%:</b> +9,6 кг мышц, почти без жира. <b>Реально 100 кг и сухой.</b></p>
+    </div>
+  </section>
+
+  <!-- ПРОДУКТЫ -->
+  <section id="shop" class="section">
+    <h1>Список покупок</h1>
+    <p class="subtitle">Всё, что нужно для набора массы. На неделю — ~3800–4500 ₽. В месяц — ~15–18к.</p>
+
+    <div class="shop-category">
+      <div class="shop-category-head">
+        <div class="shop-category-icon">🥩</div>
+        <div>
+          <div class="shop-category-title">Белок</div>
+          <div class="shop-category-sub">Мясо, яйца, молочка, рыба, бобовые</div>
+        </div>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="shop-item-name">Яйца — 30 шт</div>
+          <div class="shop-item-note">Варёные, омлет, яичница. Основа завтрака и перекуса.</div>
+          <div class="shop-item-price">~450 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Курица (бёдра / голени) — 2–2,5 кг</div>
+          <div class="shop-item-note">Бёдра дешевле и сочнее грудки. Готовить в мультиварке или на сковороде.</div>
+          <div class="shop-item-price">~700–800 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Куриная грудка — 0,5–1 кг</div>
+          <div class="shop-item-note">Постнее, если боится лишнего жира. Суше, нужен соус.</div>
+          <div class="shop-item-price">~300–400 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Творог 5% — 2 кг</div>
+          <div class="shop-item-note">С мёдом, вареньем, бананом, какао. Пустой не лезет — и не надо.</div>
+          <div class="shop-item-price">~500 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Молоко — 4–5 л</div>
+          <div class="shop-item-note">2,5–3,2%. Для коктейлей и какао. Топлёное — вкуснее.</div>
+          <div class="shop-item-price">~350 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Сыр — 300 г</div>
+          <div class="shop-item-note">В бутерброды, в соус, в омлет. Любой — российский, гауда, чеддер.</div>
+          <div class="shop-item-price">~250 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Кефир / ряженка — 1 л</div>
+          <div class="shop-item-note">Для пищеварения. Если молоко не очень — зайдёт.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Консервированный тунец — 2 банки</div>
+          <div class="shop-item-note">Если захочет попробовать рыбу. Дёшево, не пахнет, готовить не надо.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Минтай (заморозка) — 1 кг</div>
+          <div class="shop-item-note">Дешёвая рыба. Запекается в мультиварке/духовке за 20 мин.</div>
+          <div class="shop-item-price">~300 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Горох / чечевица — 500 г</div>
+          <div class="shop-item-note">Дешёвый белок, если бюджет впритык. Варить в мультиварке.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-category">
+      <div class="shop-category-head">
+        <div class="shop-category-icon">🍚</div>
+        <div>
+          <div class="shop-category-title">Углеводы</div>
+          <div class="shop-category-sub">Крупы, хлеб, фрукты, орехи, сладкое</div>
+        </div>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="shop-item-name">Рис — 1 кг</div>
+          <div class="shop-item-note">Длиннозерновой или круглый. Основа гарниров.</div>
+          <div class="shop-item-price">~120 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Гречка — 1 кг</div>
+          <div class="shop-item-note">Больше клетчатки, чем рис. Чередовать.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Макароны (твёрдые сорта) — 1 кг</div>
+          <div class="shop-item-note">С сырным или сливочным соусом — топ.</div>
+          <div class="shop-item-price">~120 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Овсянка — 1 кг</div>
+          <div class="shop-item-note">Даже если не любит — в блендер, не чувствуется. Клетчатка.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Хлеб — 2 буханки</div>
+          <div class="shop-item-note">Для бутербродов с курицей, сыром, маслом.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Бананы — 2 кг</div>
+          <div class="shop-item-note">Утром, до тренировки, в коктейли. Спелые — слаще.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Яблоки — 1 кг</div>
+          <div class="shop-item-note">1–2 в день. Клетчатка и вкус.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Апельсины / груши — 1 кг</div>
+          <div class="shop-item-note">Для разнообразия. Что больше любит.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Орехи (грецкие / миндаль / арахис) — 300 г</div>
+          <div class="shop-item-note">Калорийно, удобно носить с собой. Горсть в день.</div>
+          <div class="shop-item-price">~300 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Печенье «Юбилейное» — 1 уп.</div>
+          <div class="shop-item-note">Не супер-еда, но лучше, чем ничего, когда прижало днём.</div>
+          <div class="shop-item-price">~80 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Арахисовая паста — 1 банка</div>
+          <div class="shop-item-note">В коктейль, в творог, на хлеб. Калорийно и вкусно.</div>
+          <div class="shop-item-price">~250 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Изюм / курага — 200 г</div>
+          <div class="shop-item-note">В творог — вкусно и клетчатка.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-category">
+      <div class="shop-category-head">
+        <div class="shop-category-icon">🥦</div>
+        <div>
+          <div class="shop-category-title">Овощи и клетчатка</div>
+          <div class="shop-category-sub">300–500 г овощей в день + зелень. Для пищеварения.</div>
+        </div>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="shop-item-name">Помидоры — 1 кг</div>
+          <div class="shop-item-note">В салат, просто так, в соус. 2 штуки в день минимум.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Огурцы — 1 кг</div>
+          <div class="shop-item-note">В салат, грызть. С помидорами + масло — база.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Капуста (свежая / квашеная) — 1 кочан</div>
+          <div class="shop-item-note">Салат или тушить. Квашеная — вкусно и клетчатка.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Морковь — 1 кг</div>
+          <div class="shop-item-note">Сырая, тёртая, тушёная. Дёшево и вкусно.</div>
+          <div class="shop-item-price">~80 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Свёкла — 500 г</div>
+          <div class="shop-item-note">Варёная, в салат с маслом и чесноком.</div>
+          <div class="shop-item-price">~60 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Кабачок — 1 шт</div>
+          <div class="shop-item-note">Тушить с курицей или отдельно.</div>
+          <div class="shop-item-price">~80 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Замороженные овощи — 1–2 уп.</div>
+          <div class="shop-item-note">Брокколи, цветная, смесь. Кинул к курице в мультиварку — и всё.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Зелень (петрушка, укроп, лук) — 1 пучок</div>
+          <div class="shop-item-note">Мелко в салат или в готовку. Не чувствуется, но клетчатка.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Отруби / семена льна — 1 уп.</div>
+          <div class="shop-item-note">1–2 ложки в творог или коктейль. Если клетчатки не хватает.</div>
+          <div class="shop-item-price">~120 ₽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-category">
+      <div class="shop-category-head">
+        <div class="shop-category-icon">🧄</div>
+        <div>
+          <div class="shop-category-title">Соусы и специи</div>
+          <div class="shop-category-sub">Чтобы рис с курицей не был пресным</div>
+        </div>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="shop-item-name">Сливки питьевые 10–20% — 1–2 уп.</div>
+          <div class="shop-item-note">Основа сливочного соуса. НЕ растительные, НЕ взбитые.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Сметана 15–20% — 1 уп.</div>
+          <div class="shop-item-note">Замена сливкам, если их нет. Или в творог.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Томатная паста — 1 банка</div>
+          <div class="shop-item-note">Томатный соус к курице с рисом или макаронами.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Соевый соус — 1 бут.</div>
+          <div class="shop-item-note">Соево-медовый соус или просто к рису. Умами.</div>
+          <div class="shop-item-price">~120 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Карри, паприка, травы — набор</div>
+          <div class="shop-item-note">Меняют вкус одной и той же курицы. Обязательно.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Чеснок (свежий / сухой)</div>
+          <div class="shop-item-note">В сливочный соус, в курицу, в салат.</div>
+          <div class="shop-item-price">~50 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Масло сливочное + растительное</div>
+          <div class="shop-item-note">Сливочное — в кашу, макароны. Растительное — жарить, в салат.</div>
+          <div class="shop-item-price">~250 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Майонез / кетчуп (немного)</div>
+          <div class="shop-item-note">Если совсем не лезет — лучше так, чем не есть. На массе ок.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Соль, перец</div>
+          <div class="shop-item-note">База. Без этого всё пресно.</div>
+          <div class="shop-item-price">~50 ₽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-category">
+      <div class="shop-category-head">
+        <div class="shop-category-icon">🍫</div>
+        <div>
+          <div class="shop-category-title">Для коктейлей и творога</div>
+          <div class="shop-category-sub">Чтобы коктейль был как десерт, а не как «полезный смузи»</div>
+        </div>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="shop-item-name">Мороженое — 1 уп.</div>
+          <div class="shop-item-note">Пломбир / сливочное / ванильное. В коктейль — 1–2 шарика.</div>
+          <div class="shop-item-price">~250 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Мёд — 1 банка</div>
+          <div class="shop-item-note">В творог, в коктейль, в кашу. Заменяет сахар.</div>
+          <div class="shop-item-price">~250 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Варенье — 1 банка</div>
+          <div class="shop-item-note">В творог и в коктейль. Что любит — то и берёт.</div>
+          <div class="shop-item-price">~150 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Сгущёнка — 1 банка</div>
+          <div class="shop-item-note">В творог и в коктейль. Калорийно, вкусно.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Какао — 1 уп.</div>
+          <div class="shop-item-note">Шоколадный коктейль, какао с молоком, в творог.</div>
+          <div class="shop-item-price">~120 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Замороженная клубника — 1 уп.</div>
+          <div class="shop-item-note">Клубничный коктейль. Можно заменить вареньем.</div>
+          <div class="shop-item-price">~200 ₽</div>
+        </div>
+        <div class="shop-item">
+          <div class="shop-item-name">Шоколад (молочный / тёмный) — 1 плитка</div>
+          <div class="shop-item-note">Пара кубиков, когда совсем тяжко. Не для массы — для настроения.</div>
+          <div class="shop-item-price">~100 ₽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-total">
+      <div>
+        <div class="shop-total-label">Примерно на неделю</div>
+        <div class="shop-total-sub">Всё, что выше. Хватит на 5–6 дней питания + коктейли.</div>
+      </div>
+      <div class="shop-total-value">~3800–4500 ₽</div>
+      <div class="shop-total-sub">
+        В месяц — <b>~15–18к ₽</b>. Если убрать арахисовую пасту, сыр, орехи и шоколад — влезает в 14к.
+        Если совсем впритык: больше яиц, куриных бёдер, гороха, меньше — рыбы, орехов, мороженого.
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:20px;">
+      <b>Что важно помнить:</b>
+      <ul style="margin-top:8px;margin-bottom:0;">
+        <li>Сыр, сливки, мороженое, сгущёнка — это <b>не «чит»</b>. На массе это нормальная еда, если общий профицит +200–300 ккал, а не +1000.</li>
+        <li>Курица — <b>бёдра/голени</b>, а не грудка. Дешевле и сочнее. Грудку — если хочет постнее.</li>
+        <li>Молоко — <b>2,5–3,2%</b>, топлёное вкуснее. Если плохо идёт — кефир, ряженка.</li>
+        <li>Сливки — <b>только питьевые 10–20%</b>. Не растительные и не взбитые в баллоне.</li>
+        <li>Овощи — <b>каждый день</b>, а не раз в 2 дня. Иначе с туалетом будут проблемы.</li>
+        <li>Вода — <b>2,5–3 л в день</b>. Без неё клетчатка не работает.</li>
+        <li>Коктейли — <b>2 раза в день</b> (утром и/или перед сном), если обычная еда не лезет.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- Модалка типа дня -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modalTitle">Выбери тип дня</h3>
+    <button class="modal-option" onclick="setDayType('a')">
+      <span class="badge" style="background:rgba(59,130,246,0.15);color:var(--blue)">A</span>
+      Верх A — грудь + ширина спины
+    </button>
+    <button class="modal-option" onclick="setDayType('b')">
+      <span class="badge" style="background:rgba(168,85,247,0.15);color:var(--purple)">B</span>
+      Верх B — спина + плечи + руки
+    </button>
+    <button class="modal-option" onclick="setDayType('c')">
+      <span class="badge light">C</span>
+      Ноги — в зале
+    </button>
+    <button class="modal-option" onclick="setDayType('rest')">
+      <span class="badge" style="background:var(--card2);color:var(--muted)">—</span>
+      Отдых
+    </button>
+    <button class="modal-close" onclick="closeModal()">Отмена</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПРОФИЛЬ -->
+<div class="modal-overlay" id="profileDataModal" onclick="closeProfileData(event)">
+  <div class="modal fancy-scroll" onclick="event.stopPropagation()">
+    <h3>👤 Профиль</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Основные данные. Сохраняются и используются в расчётах.</p>
+
+    <div class="profile-form">
+      <div class="form-group full">
+        <label>Имя</label>
+        <input type="text" id="pName" placeholder="Введи имя" maxlength="30" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Возраст</label>
+        <input type="number" id="pAge" placeholder="19" min="10" max="100">
+      </div>
+      <div class="form-group">
+        <label>Рост, см</label>
+        <input type="number" id="pHeight" placeholder="197" min="100" max="250">
+      </div>
+      <div class="form-group">
+        <label>Вес, кг</label>
+        <input type="number" id="pWeight" placeholder="89" min="30" max="250" step="0.1">
+      </div>
+    </div>
+
+    <button class="btn" onclick="saveProfileData()" style="width:100%;">Сохранить</button>
+    <button class="modal-close" onclick="closeProfileData()" style="margin-top:12px;">Закрыть</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА РАСЧЁТ -->
+<div class="modal-overlay" id="calcModal" onclick="closeCalc(event)">
+  <div class="modal fancy-scroll" onclick="event.stopPropagation()">
+    <h3>📊 Расчёт</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Показатели считаются по данным из профиля.</p>
+
+    <div id="calcEmpty" style="display:none;">
+      <div class="note warn">
+        Профиль пока не заполнен. Укажи возраст, рост и вес — и расчёт появится автоматически.
+      </div>
+      <button class="btn" onclick="editProfileFromCalc()" style="width:100%;margin-top:8px;">Заполнить профиль</button>
+    </div>
+
+    <div id="results" style="display:none;">
+      <h3 style="margin-top:8px;">Результаты</h3>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="label">ИМТ</div>
+          <div class="value accent" id="rBMI">—</div>
+          <div class="sub" id="rBMICat">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Норма веса</div>
+          <div class="value" id="rNorm" style="font-size:18px;">—</div>
+          <div class="sub">по ИМТ 18,5–24,9</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">BMR (покой)</div>
+          <div class="value blue" id="rBMR">—</div>
+          <div class="sub">ккал/сутки</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Поддержка</div>
+          <div class="value purple" id="rTDEE">—</div>
+          <div class="sub">ккал/сутки</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Для набора</div>
+          <div class="value accent" id="rBulk">—</div>
+          <div class="sub">+200–300 ккал</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Белок</div>
+          <div class="value warn" id="rProtein">—</div>
+          <div class="sub">г/сутки</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>Шкала ИМТ</h3>
+        <div class="bmi-scale">
+          <div class="bmi-value-bubble" id="bmiBubble">—</div>
+          <div class="bmi-bar">
+            <div class="bmi-segment bmi-under"></div>
+            <div class="bmi-segment bmi-normal"></div>
+            <div class="bmi-segment bmi-over"></div>
+            <div class="bmi-segment bmi-obese"></div>
+          </div>
+          <div class="bmi-marker" id="bmiMarker" style="left:0;"></div>
+          <div class="bmi-labels">
+            <span>&lt;18,5</span>
+            <span>18,5–24,9</span>
+            <span>25–29,9</span>
+            <span>30+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="note" id="rRecommend" style="display:none;"></div>
+
+      <button class="btn secondary" onclick="editProfileFromCalc()" style="width:100%;margin-top:16px;">✏️ Изменить данные</button>
+    </div>
+
+    <button class="modal-close" onclick="closeCalc()" style="margin-top:12px;">Закрыть</button>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // ХРАНИЛИЩЕ (один профиль)
+  // ============================================================
+  const LS_KEY = 'trainlog_profile';
+  const DEFAULT_SCHEDULE = ['rest', 'a', 'rest', 'b', 'c', 'rest', 'rest'];
+
+  function todayIndex() {
+    const t = new Date().getDay();
+    return t === 0 ? 6 : t - 1;
+  }
+
+  function defaultProfile() {
+    return {
+      name: 'Друг',
+      age: null,
+      height: null,
+      weight: null,
+      schedule: [...DEFAULT_SCHEDULE]
+    };
+  }
+
+  function getProfileData() {
+    let p = null;
+    try {
+      p = JSON.parse(localStorage.getItem(LS_KEY));
+    } catch (e) {}
+
+    if (!p || typeof p !== 'object') {
+      // Миграция из старых ключей, если они были
+      const oldName = localStorage.getItem('accountName') || 'Друг';
+      let oldProfile = {};
+      try { oldProfile = JSON.parse(localStorage.getItem('profile')) || {}; } catch (e) {}
+      let oldSchedule = null;
+      try { oldSchedule = JSON.parse(localStorage.getItem('schedule')); } catch (e) {}
+      if (!Array.isArray(oldSchedule) || oldSchedule.length !== 7) {
+        oldSchedule = [...DEFAULT_SCHEDULE];
+      }
+
+      p = defaultProfile();
+      p.name = oldName;
+      p.age = oldProfile.age || null;
+      p.height = oldProfile.height || null;
+      p.weight = oldProfile.weight || null;
+      p.schedule = oldSchedule;
+
+      saveProfileDataStore(p);
+
+      localStorage.removeItem('accountName');
+      localStorage.removeItem('profile');
+      localStorage.removeItem('schedule');
+    }
+
+    if (!Array.isArray(p.schedule) || p.schedule.length !== 7) {
+      p.schedule = [...DEFAULT_SCHEDULE];
+    }
+
+    return p;
+  }
+
+  function saveProfileDataStore(p) {
+    localStorage.setItem(LS_KEY, JSON.stringify(p));
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ============================================================
+  // ТЕМА
+  // ============================================================
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateThemeBtn(next);
+  }
+
+  function updateThemeBtn(theme) {
+    document.getElementById('themeIcon').textContent = theme === 'light' ? '🌙' : '☀️';
+  }
+
+  // ============================================================
+  // ВКЛАДКИ
+  // ============================================================
+  function showTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============================================================
+  // АККАУНТ
+  // ============================================================
+  function toggleAccount(e) {
+    e.stopPropagation();
+    document.getElementById('accountMenu').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('accountMenu').classList.remove('open');
+  });
+
+  function updateAccountUI() {
+    const p = getProfileData();
+    const name = p.name || 'Друг';
+
+    document.getElementById('accountName').textContent = name;
+    document.getElementById('avatarInitials').textContent = name.charAt(0).toUpperCase() || 'Д';
+    document.getElementById('menuName').textContent = name;
+
+    const role = document.getElementById('menuRole');
+    if (p.height && p.weight) {
+      role.textContent = `${p.height} см · ${p.weight} кг`;
+    } else {
+      role.textContent = 'Профиль не заполнен';
+    }
+  }
+
+  function resetAll() {
+    if (confirm('Сбросить всё: профиль, расписание и данные?')) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+
+  // ============================================================
+  // РАСПИСАНИЕ
+  // ============================================================
+  const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const DAYS_FULL = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+  const TYPE_LABELS = { 'a': 'Верх A', 'b': 'Верх B', 'c': 'Ноги', 'rest': 'Отдых' };
+  const TYPE_CLASSES = { 'a': 'type-a', 'b': 'type-b', 'c': 'type-c', 'rest': 'type-rest' };
+
+  const WORKOUTS = {
+    a: {
+      title: 'День A — Верх (грудь + ширина спины)',
+      badge: 'Верх A',
+      where: 'Дома',
+      exercises: [
+        ['Подтягивания (с рюкзаком, если легко)', '4×6–10'],
+        ['Брусья (наклон вперёд, грудь)', '4×8–12'],
+        ['Отжимания с ногами на возвышении', '3×12–20'],
+        ['Тяга штанги в наклоне', '4×8–10'],
+        ['Тяга гантели одной рукой в наклоне', '3×10–12'],
+        ['Подъём ног в висе', '3×10–15'],
+        ['Сгибания рук со штангой / гантелями', '2×10–12']
+      ],
+      tip: 'Тяжёлые упражнения — отдых 2–3 мин. Работать не до отказа, оставлять 1–2 повтора в запасе.'
+    },
+    b: {
+      title: 'День B — Верх (спина + плечи + руки + хват)',
+      badge: 'Верх B',
+      where: 'Дома',
+      exercises: [
+        ['Подтягивания обратным хватом', '4×6–10'],
+        ['Брусья (корпус вертикально, трицепс)', '4×8–12'],
+        ['Жим гантелей стоя / сидя', '4×8–12'],
+        ['Тяга штанги обратным хватом', '3×8–12'],
+        ['Махи гантелями в стороны', '3×12–20'],
+        ['Разведения в наклоне (задняя дельта)', '3×12–15'],
+        ['Бицепс + молотки', '2×10–12'],
+        ['Эспандер (сжатие + негативы + удержание)', '2–3 подхода'],
+        ['Сгибания запястий со штангой', '2×15–20'],
+        ['Обратные сгибания', '2×12–15'],
+        ['Вис на турнике', '2×макс']
+      ],
+      tip: 'Хват и предплечья — в конце. Махи и разведения делай чисто, без раскачки.'
+    },
+    c: {
+      title: 'День C — Ноги (в зале)',
+      badge: 'Ноги',
+      where: 'В зале',
+      exercises: [
+        ['Присед со штангой', '4×6–10'],
+        ['Жим ногами / выпады', '3×10–12'],
+        ['Румынская тяга / сгибания ног', '3×10–12'],
+        ['Разгибания ног', '3×12–15'],
+        ['Икры стоя / сидя', '4×12–20'],
+        ['Пресс', '3×10–15']
+      ],
+      tip: 'Присед — отдых 3 мин. Икры и пресс — короткий отдых 60 сек. Не забывай про разминку.'
+    },
+    rest: {
+      title: 'Выходной',
+      badge: 'Отдых',
+      where: 'Восстановление',
+      rest: true,
+      items: [
+        'Сон 7–9 часов — главный восстановитель',
+        'Прогулка 20–40 минут, лёгкая растяжка',
+        'Питание как обычно: белок в каждом приёме, вода 2,5–3 л',
+        'По желанию: эспандер, вис на турнике — без фанатизма',
+        'Никаких тяжёлых тренировок — мышцы растут именно в отдыхе'
+      ]
+    }
+  };
+
+  function getSchedule() {
+    const p = getProfileData();
+    if (Array.isArray(p.schedule) && p.schedule.length === 7) {
+      return p.schedule;
+    }
+    return [...DEFAULT_SCHEDULE];
+  }
+
+  function saveSchedule(s) {
+    const p = getProfileData();
+    p.schedule = s;
+    saveProfileDataStore(p);
+  }
+
+  let editingDay = null;
+  let selectedDay = todayIndex();
+
+  function renderWeek() {
+    const schedule = getSchedule();
+    const grid = document.getElementById('weekGrid');
+    const t = todayIndex();
+
+    grid.innerHTML = schedule.map((type, i) => `
+      <div class="day-card ${i === t ? 'today' : ''} ${i === selectedDay ? 'selected' : ''}" onclick="selectDay(${i})">
+        <div class="day-name">${DAYS[i]}</div>
+        <div class="day-type ${TYPE_CLASSES[type]}">${TYPE_LABELS[type]}</div>
+      </div>
+    `).join('');
+
+    renderDayDetail();
+  }
+
+  function selectDay(dayIndex) {
+    selectedDay = dayIndex;
+    renderWeek();
+  }
+
+  function renderDayDetail() {
+    const schedule = getSchedule();
+    const type = schedule[selectedDay];
+    const w = WORKOUTS[type];
+    const container = document.getElementById('dayDetail');
+    const isToday = selectedDay === todayIndex();
+
+    const dayLabel = DAYS_FULL[selectedDay] + (isToday ? ' · сегодня' : '');
+
+    let inner = '';
+
+    if (w.rest) {
+      inner = `
+        <div class="card">
+          <div class="day-detail-head">
+            <h3>${dayLabel} · Отдых</h3>
+            <button class="change-day-btn" onclick="openModal(${selectedDay})">Изменить</button>
+          </div>
+          <p class="day-detail-sub">Выходной. Восстановление — часть тренировочного процесса.</p>
+          <ul class="rest-list">
+            ${w.items.map(i => `<li>${i}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    } else {
+      inner = `
+        <div class="card">
+          <div class="day-detail-head">
+            <h3>${dayLabel} · ${w.badge}</h3>
+            <button class="change-day-btn" onclick="openModal(${selectedDay})">Изменить</button>
+          </div>
+          <p class="day-detail-sub">${w.title} · ${w.where}</p>
+          <ul class="ex-list">
+            ${w.exercises.map(([name, sets]) => `
+              <li>
+                <span class="ex-name">${name}</span>
+                <span class="ex-sets">${sets}</span>
+              </li>
+            `).join('')}
+          </ul>
+          <div class="note" style="margin-top:16px;margin-bottom:0;">${w.tip}</div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = inner;
+  }
+
+  function openModal(dayIndex) {
+    editingDay = dayIndex;
+    document.getElementById('modalTitle').textContent = 'День: ' + DAYS[dayIndex];
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e && e.target && e.target.id !== 'modal' && e.type === 'click') return;
+    document.getElementById('modal').classList.remove('open');
+    editingDay = null;
+  }
+
+  function setDayType(type) {
+    if (editingDay === null) return;
+    const schedule = getSchedule();
+    schedule[editingDay] = type;
+    saveSchedule(schedule);
+    selectedDay = editingDay;
+    renderWeek();
+    document.getElementById('modal').classList.remove('open');
+    editingDay = null;
+  }
+
+  // ============================================================
+  // ПРОФИЛЬ
+  // ============================================================
+  function getProfile() {
+    const p = getProfileData();
+    return { age: p.age, height: p.height, weight: p.weight };
+  }
+
+  let calcWasOpen = false;
+
+  function openProfileData() {
+    const p = getProfileData();
+
+    document.getElementById('pName').value = p.name || '';
+    document.getElementById('pAge').value = p.age || '';
+    document.getElementById('pHeight').value = p.height || '';
+    document.getElementById('pWeight').value = p.weight || '';
+
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('profileDataModal').classList.add('open');
+
+    setTimeout(() => {
+      const el = document.getElementById('pName');
+      if (el) el.focus();
+    }, 60);
+  }
+
+  function closeProfileData(e) {
+    if (e && e.target && e.target.id !== 'profileDataModal' && e.type === 'click') return;
+    document.getElementById('profileDataModal').classList.remove('open');
+  }
+
+  function saveProfileData() {
+    const nameRaw = (document.getElementById('pName').value || '').trim();
+    const name = nameRaw || 'Друг';
+    const age = parseFloat(document.getElementById('pAge').value) || null;
+    const height = parseFloat(document.getElementById('pHeight').value) || null;
+    const weight = parseFloat(document.getElementById('pWeight').value) || null;
+
+    const p = getProfileData();
+    p.name = name;
+    p.age = age;
+    p.height = height;
+    p.weight = weight;
+    saveProfileDataStore(p);
+
+    updateAccountUI();
+    closeProfileData();
+
+    if (calcWasOpen) {
+      calcWasOpen = false;
+      openCalc();
+    }
+  }
+
+  // ============================================================
+  // РАСЧЁТ
+  // ============================================================
+  function openCalc() {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('calcModal').classList.add('open');
+
+    const p = getProfile();
+    if (p.height && p.weight && p.age) {
+      calculate();
+    } else {
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('calcEmpty').style.display = 'block';
+    }
+  }
+
+  function closeCalc(e) {
+    if (e && e.target && e.target.id !== 'calcModal' && e.type === 'click') return;
+    document.getElementById('calcModal').classList.remove('open');
+  }
+
+  function editProfileFromCalc() {
+    calcWasOpen = true;
+    document.getElementById('calcModal').classList.remove('open');
+    openProfileData();
+  }
+
+  function calculate() {
+    const p = getProfile();
+
+    const empty = document.getElementById('calcEmpty');
+    const results = document.getElementById('results');
+
+    if (!p.height || !p.weight || !p.age) {
+      results.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    results.style.display = 'block';
+
+    const gender = 'male';
+    const activity = 1.55;
+
+    const heightM = p.height / 100;
+    const bmi = p.weight / (heightM * heightM);
+
+    let bmiCat = '', bmiColor = '';
+    if (bmi < 18.5) { bmiCat = 'Недостаток веса'; bmiColor = 'blue'; }
+    else if (bmi < 25) { bmiCat = 'Норма'; bmiColor = 'accent'; }
+    else if (bmi < 30) { bmiCat = 'Избыточный вес'; bmiColor = 'warn'; }
+    else { bmiCat = 'Ожирение'; bmiColor = 'danger'; }
+
+    document.getElementById('rBMI').textContent = bmi.toFixed(1);
+    document.getElementById('rBMI').className = 'value ' + bmiColor;
+    document.getElementById('rBMICat').textContent = bmiCat;
+
+    const minW = 18.5 * heightM * heightM;
+    const maxW = 24.9 * heightM * heightM;
+    document.getElementById('rNorm').textContent = `${minW.toFixed(0)}–${maxW.toFixed(0)} кг`;
+
+    let bmr;
+    if (gender === 'male') {
+      bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
+    } else {
+      bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age - 161;
+    }
+    document.getElementById('rBMR').textContent = Math.round(bmr);
+
+    const tdee = bmr * activity;
+    document.getElementById('rTDEE').textContent = Math.round(tdee);
+
+    const bulkMin = Math.round(tdee + 200);
+    const bulkMax = Math.round(tdee + 300);
+    document.getElementById('rBulk').textContent = `${bulkMin}–${bulkMax}`;
+
+    const protMin = Math.round(p.weight * 1.8);
+    const protMax = Math.round(p.weight * 2);
+    document.getElementById('rProtein').textContent = `${protMin}–${protMax}`;
+
+    const marker = document.getElementById('bmiMarker');
+    const bubble = document.getElementById('bmiBubble');
+    let percent = ((bmi - 15) / 20) * 100;
+    percent = Math.max(3, Math.min(97, percent));
+    marker.style.left = percent + '%';
+    bubble.style.left = percent + '%';
+    bubble.textContent = bmi.toFixed(1);
+
+    const colorMap = {
+      'blue':   { main: '#3b82f6', glow: 'rgba(59,130,246,0.55)' },
+      'accent': { main: '#22c55e', glow: 'rgba(34,197,94,0.55)'  },
+      'warn':   { main: '#f59e0b', glow: 'rgba(245,158,11,0.55)' },
+      'danger': { main: '#ef4444', glow: 'rgba(239,68,68,0.55)'  }
+    };
+    const c = colorMap[bmiColor] || colorMap.accent;
+    marker.style.background = `linear-gradient(135deg, ${c.main}, ${c.main})`;
+    marker.style.boxShadow = `0 0 0 2px ${c.main}, 0 6px 16px ${c.glow}, 0 0 22px ${c.glow}`;
+    bubble.style.background = `linear-gradient(135deg, ${c.main}, ${c.main})`;
+    bubble.style.boxShadow = `0 4px 14px ${c.glow}`;
+
+    const rec = document.getElementById('rRecommend');
+    rec.style.display = 'block';
+    if (bmi < 18.5) {
+      rec.className = 'note warn';
+      rec.innerHTML = '<b>ИМТ ниже нормы.</b> Нужен профицит и силовые тренировки. Ешь 5–6 раз в день, белок 1,8–2 г/кг, сон 7–9 ч.';
+    } else if (bmi < 25) {
+      rec.className = 'note';
+      rec.innerHTML = '<b>ИМТ в норме.</b> Отличная стартовая точка. Для набора мышц — профицит +200–300 ккал, белок 1,8–2 г/кг, тренировки 3 раза в неделю.';
+    } else if (bmi < 30) {
+      rec.className = 'note warn';
+      rec.innerHTML = '<b>ИМТ выше нормы.</b> Можно начать с рекомпозиции: есть на уровне поддержки или чуть ниже, белок высокий, силовые тренировки. Жир будет уходить, мышцы расти.';
+    } else {
+      rec.className = 'note danger';
+      rec.innerHTML = '<b>ИМТ в зоне ожирения.</b> Лучше сначала снизить вес до нормы, потом набирать мышцы. Проконсультируйся с врачом.';
+    }
+  }
+
+  // ============================================================
+  // ИНИЦИАЛИЗАЦИЯ
+  // ============================================================
+  (function init() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeBtn(savedTheme);
+
+    getProfileData();
+
+    updateAccountUI();
+    renderWeek();
+  })();
+</script>
+
+</body>
+</html>
